@@ -28,4 +28,6 @@ export namespace Gizmo {
 	export const line: GizmoInstance<(start: Vector3, end: Vector3) => void>;
 	export const arrow: GizmoInstance<(start: Vector3, end: Vector3) => void>;
 	export const ray: GizmoInstance<(origin: Vector3, direction: Vector3) => void>;
+	export const plane: GizmoInstance<(cframe: CFrame, size: Vector2 | undefined) => void>;
+	export const text: GizmoInstance<(position: Vector3, text: string) => void>;
 }
