@@ -1,24 +1,22 @@
---!nocheck
+--!nonstrict
 -- Name:		gizmo.lua
 -- Version:		2.0 (02/07/23)
--- Author:		Brad Sharp
+-- Author:		Brad Sharp, Ethan Curtis, Christopher Buss
 --
 -- Repository:	https://github.com/BradSharp/Roblox-Miscellaneous/tree/master/Gizmo
 -- License:		MIT
 --
 -- Copyright (c) 2021-2023 Brad Sharp
-------------------------------------------------------------------------------------------------------------------------
-
-local GLOBAL_ATTRIBUTE = "EnableGizmos"
+-------------------------------------------------------------------------------
 
 local DEFAULT_SCALE = 0.1
 local DEFAULT_COLOR = Color3.fromRGB(255, 255, 0)
 
 local RunService = game:GetService("RunService")
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Type Definitions
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 type Style = {
 	color: Color3,
@@ -28,13 +26,13 @@ type Style = {
 }
 
 type Gizmo = {
-	__properties: {[number]: any, n: number},
-	style: Style
+	__properties: { [number]: any, n: number },
+	style: Style,
 }
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Internal Variables
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 local moduleId = script:GetFullName()
 local active = false
@@ -42,7 +40,8 @@ local active = false
 local scheduledObjects = {}
 local renderQueue = {}
 local instanceCache = {}
-local container = Instance.new("Folder", workspace)
+local container = Instance.new("Folder")
+container.Parent = workspace
 
 container.Name = "Gizmos"
 container.Archivable = false
@@ -51,12 +50,12 @@ local globalStyle: Style = {
 	color = DEFAULT_COLOR,
 	layer = 1,
 	transparency = 0,
-	scale = DEFAULT_SCALE
+	scale = DEFAULT_SCALE,
 }
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Update Instance Visibility
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 local function show(instance)
 	if instance:IsA("PVAdornment") then
@@ -74,9 +73,9 @@ local function hide(instance)
 	end
 end
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Instance Caching
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 local function get(class)
 	local classCache = instanceCache[class]
@@ -86,7 +85,8 @@ local function get(class)
 	end
 	local instance = table.remove(classCache)
 	if not instance then
-		instance = Instance.new(class, container)
+		instance = Instance.new(class)
+		instance.Parent = container
 		hide(instance)
 	end
 	return instance
@@ -103,11 +103,11 @@ local function release(instance)
 	table.insert(classCache, instance)
 end
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Style Instances
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
-local function applyStyleToAdornment(style : Style, adornment)
+local function applyStyleToAdornment(style: Style, adornment)
 	adornment.Color3 = style.color
 	adornment.Transparency = style.transparency
 	adornment.ZIndex = style.layer
@@ -115,15 +115,15 @@ local function applyStyleToAdornment(style : Style, adornment)
 	adornment.AlwaysOnTop = true
 end
 
-local function applyStyleToHighlight(style : Style, highlight)
+local function applyStyleToHighlight(style: Style, highlight)
 	highlight.FillColor = style.color
 	highlight.OutlineColor = style.color
 	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
 end
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Render Instances
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 local function renderPoint(style, position: Vector3)
 	local adornment = get("SphereHandleAdornment")
@@ -280,51 +280,50 @@ local function renderRay(style, from: Vector3, direction: Vector3)
 	return renderArrow(style, from, from + direction)
 end
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Gizmo Class Wrapper
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 local function createGizmo<T...>(render: (Style, T...) -> ())
-	
-	local class = {__index={}}
-	
-	function class.draw(... : T...)
+	local class = { __index = {} }
+
+	function class.draw(...: T...)
 		if active then
 			render(globalStyle, ...)
 		end
 	end
-	
+
 	type Object = typeof(setmetatable({} :: Gizmo, class))
-	
-	function class.create(... : T...) : Object
+
+	function class.create(...: T...): Object
 		return setmetatable({
 			__properties = table.pack(...),
-			style = table.clone(globalStyle)
+			style = table.clone(globalStyle),
 		}, class)
 	end
-	
+
 	function class.__index:enable()
 		scheduledObjects[self] = true
 	end
-	
+
 	function class.__index:disable()
 		scheduledObjects[self] = nil
 	end
-	
-	function class.__index:update(... : T...)
+
+	function class.__index:update(...: T...)
 		self.__properties = table.pack(...)
 	end
-	
+
 	function class.__index:__render()
 		render(self.style, table.unpack(self.__properties))
 	end
-	
+
 	return table.freeze(class)
 end
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Render Update
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 local function update()
 	-- All gizmos created with 'create' need to be queued for render
@@ -343,9 +342,9 @@ local function update()
 	end
 end
 
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- State Management
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
 local function enable()
 	active = true
@@ -357,27 +356,19 @@ local function disable()
 	RunService:UnbindFromRenderStep(moduleId)
 end
 
-workspace:GetAttributeChangedSignal(GLOBAL_ATTRIBUTE):Connect(function ()
-	if workspace:GetAttribute(GLOBAL_ATTRIBUTE) then
-		enable()
-	else
-		disable()
-	end
-end)
-
-if workspace:GetAttribute(GLOBAL_ATTRIBUTE) then
-	enable()
-end
-
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Exports
-------------------------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 
-return table.freeze {
-	
+return table.freeze({
+
 	-- Globals
 	style = globalStyle,
-	
+
+	-- Functions
+	enableGizmos = enable,
+	disableGizmos = disable,
+
 	-- Gizmos
 	point = createGizmo(renderPoint),
 	box = createGizmo(renderBox),
@@ -387,5 +378,4 @@ return table.freeze {
 	line = createGizmo(renderLine),
 	arrow = createGizmo(renderArrow),
 	ray = createGizmo(renderRay),
-	
-}
+})
