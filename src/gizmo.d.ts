@@ -1,5 +1,8 @@
+/// <reference types="@rbxts/types" />
+/// <reference types="@rbxts/compiler-types" />
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface GizmoInstance<T extends (...args: Array<any>) => void> {
+declare interface GizmoInstance<T extends (...args: Array<any>) => void> {
 	create(...args: Parameters<T>): GizmoInstance<T>;
 	disable(): void;
 	draw(...args: Parameters<T>): void;
@@ -7,14 +10,14 @@ interface GizmoInstance<T extends (...args: Array<any>) => void> {
 	update(...args: Parameters<T>): void;
 }
 
-export type Style = {
+declare type Style = {
 	color: Color3;
 	layer: number;
 	transparency: number;
 	scale: number;
 };
 
-export namespace Gizmo {
+declare namespace Gizmo {
 	export const style: Style;
 
 	export function enableGizmos(): void;
@@ -31,3 +34,5 @@ export namespace Gizmo {
 	export const plane: GizmoInstance<(cframe: CFrame, size: Vector2 | undefined) => void>;
 	export const text: GizmoInstance<(position: Vector3, text: string) => void>;
 }
+
+export = Gizmo;

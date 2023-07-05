@@ -1,10 +1,12 @@
 {
   "name": "@rbxts/gizmo",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "description": "gizmo is a visual debug library designed for the Roblox game engine.",
-  "main": "out/init.lua",
+  "main": "src/gizmo.lua",
+  "types": "src/gizmo.d.ts",
   "devDependencies": {
     "@rbxts/compiler-types": "^2.1.0-types.1",
+    "@rbxts/services": "^1.5.1",
     "@rbxts/types": "^1.0.703",
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.61.0",
@@ -13,25 +15,26 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-roblox-ts": "^0.0.35",
     "prettier": "^2.8.8",
-    "typescript": "^5.1.6"
+    "typescript": "=4.9.4",
+    "roblox-ts": "^2.1.0"
   },
   "scripts": {
-    "build": "rbxtsc",
+    "build": "npx rbxtsc",
     "watch": "rbxtsc -w",
     "prepublishOnly": "npm run build"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "types": "out/index.d.ts",
+  "author": "Brad Sharp",
+  "contributors": [
+    "Ethan Curtis",
+    "Christopher Buss"
+  ],
+  "license": "MIT",
   "files": [
-    "out",
-    "!**/*.tsbuildinfo"
+    "src/gizmo.luau",
+    "src/gizmo.d.ts"
   ],
   "publishConfig": {
     "access": "public"
-  },
-  "dependencies": {
-    "@rbxts/services": "^1.5.1"
   }
 }
