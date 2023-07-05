@@ -9,9 +9,13 @@
 -- Copyright (c) 2021-2023 Brad Sharp
 -------------------------------------------------------------------------------
 
+local CONTAINER_TAG = "GizmoContainer"
+local ADORNEE_TAG = "GizmoAdornee"
+
 local DEFAULT_SCALE = 0.1
 local DEFAULT_COLOR = Color3.fromRGB(255, 255, 0)
 
+local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 
 -------------------------------------------------------------------------------
@@ -19,6 +23,7 @@ local RunService = game:GetService("RunService")
 -------------------------------------------------------------------------------
 
 type Style = {
+	alwaysOnTop: boolean,
 	color: Color3,
 	layer: number,
 	transparency: number,
@@ -40,13 +45,41 @@ local active = false
 local scheduledObjects = {}
 local renderQueue = {}
 local instanceCache = {}
-local container = Instance.new("Folder")
-container.Parent = workspace
 
-container.Name = "Gizmos"
-container.Archivable = false
+-- Hoarcekat compatibility: Attempt to reuse existing container
+local container = CollectionService:GetTagged(CONTAINER_TAG)[1]
+
+if container == nil then
+	container = Instance.new("Folder")
+	container.Name = "Gizmos"
+	container.Archivable = false
+	container.Parent = workspace
+	CollectionService:AddTag(container, CONTAINER_TAG)
+end
+
+-- Using workspace as a PVAdornment's adornee can cause the PVAdornments to
+-- shift away from the origin in some cases. Using a part prevents this.
+-- Hoarcekat compatibility: Attempt to reuse existing adornee part
+local adornee = CollectionService:GetTagged(ADORNEE_TAG)[1]
+
+if adornee == nil then
+	adornee = Instance.new("Part")
+	adornee.Name = "GizmoAdornee"
+	adornee.Anchored = true
+	adornee.Archivable = false
+	adornee.CanCollide = false
+	adornee.CanQuery = false
+	adornee.CanTouch = false
+	adornee.Locked = true
+	adornee.Size = Vector3.one
+	adornee.CFrame = CFrame.new()
+	adornee.Transparency = 1
+	adornee.Parent = workspace
+	CollectionService:AddTag(adornee, ADORNEE_TAG)
+end
 
 local globalStyle: Style = {
+	alwaysOnTop = true,
 	color = DEFAULT_COLOR,
 	layer = 1,
 	transparency = 0,
@@ -58,7 +91,7 @@ local globalStyle: Style = {
 -------------------------------------------------------------------------------
 
 local function show(instance)
-	if instance:IsA("PVAdornment") then
+	if instance:IsA("PVAdornment") or instance:IsA("GuiObject") then
 		instance.Visible = true
 	else
 		instance.Enabled = true
@@ -66,7 +99,7 @@ local function show(instance)
 end
 
 local function hide(instance)
-	if instance:IsA("PVAdornment") then
+	if instance:IsA("PVAdornment") or instance:IsA("GuiObject") then
 		instance.Visible = false
 	else
 		instance.Enabled = false
@@ -103,6 +136,11 @@ local function release(instance)
 	table.insert(classCache, instance)
 end
 
+-- Hoarcekat compatibility: Release existing children
+for _, child in container:GetChildren() do
+	release(child)
+end
+
 -------------------------------------------------------------------------------
 -- Style Instances
 -------------------------------------------------------------------------------
@@ -111,21 +149,23 @@ local function applyStyleToAdornment(style: Style, adornment)
 	adornment.Color3 = style.color
 	adornment.Transparency = style.transparency
 	adornment.ZIndex = style.layer
-	adornment.Adornee = workspace
-	adornment.AlwaysOnTop = true
+	adornment.Adornee = adornee
+	adornment.AlwaysOnTop = style.alwaysOnTop
 end
 
 local function applyStyleToHighlight(style: Style, highlight)
 	highlight.FillColor = style.color
 	highlight.OutlineColor = style.color
-	highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.DepthMode = if style.alwaysOnTop
+		then Enum.HighlightDepthMode.AlwaysOnTop
+		else Enum.HighlightDepthMode.Occluded
 end
 
 -------------------------------------------------------------------------------
 -- Render Instances
 -------------------------------------------------------------------------------
 
-local function renderPoint(style, position: Vector3)
+local function renderPoint(style: Style, position: Vector3)
 	local adornment = get("SphereHandleAdornment")
 	adornment.Radius = style.scale * 0.5
 	adornment.CFrame = CFrame.new(position)
@@ -280,6 +320,37 @@ local function renderRay(style, from: Vector3, direction: Vector3)
 	return renderArrow(style, from, from + direction)
 end
 
+local function renderPlane(style, cf: CFrame, size: Vector2?)
+	size = size or Vector2.new(10, 10)
+	local adornmentPlane = get("BoxHandleAdornment")
+	adornmentPlane.CFrame = cf
+	adornmentPlane.Size = Vector3.new((size :: Vector2).X, (size :: Vector2).Y, 0)
+	applyStyleToAdornment(style, adornmentPlane)
+	table.insert(renderQueue, adornmentPlane)
+end
+
+local function renderText(style, position: Vector3, text: string, ...)
+	local safeText = tostring(text):format(...)
+	local billboard = get("BillboardGui")
+	local label = get("TextLabel")
+	local textScale = style.scale * 0.25
+	billboard.AlwaysOnTop = style.alwaysOnTop
+	billboard.StudsOffsetWorldSpace = position
+	billboard.Size = UDim2.fromScale(safeText:len() * 0.5 * textScale, textScale)
+	billboard.LightInfluence = 0
+	billboard.Adornee = adornee
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.RobotoMono
+	label.TextColor3 = style.color
+	label.TextTransparency = style.transparency
+	label.TextScaled = true
+	label.Text = safeText
+	label.Parent = billboard
+	table.insert(renderQueue, label)
+	table.insert(renderQueue, billboard)
+end
+
 -------------------------------------------------------------------------------
 -- Gizmo Class Wrapper
 -------------------------------------------------------------------------------
@@ -333,7 +404,7 @@ local function update()
 	-- Clone the queue and render all instances in it
 	local queue = table.clone(renderQueue)
 	for _, instance in ipairs(queue) do
-		instance.Visible = true
+		show(instance)
 	end
 	table.clear(renderQueue)
 	task.wait()
@@ -361,7 +432,6 @@ end
 -------------------------------------------------------------------------------
 
 return table.freeze({
-
 	-- Globals
 	style = globalStyle,
 
@@ -378,4 +448,6 @@ return table.freeze({
 	line = createGizmo(renderLine),
 	arrow = createGizmo(renderArrow),
 	ray = createGizmo(renderRay),
+	plane = createGizmo(renderPlane),
+	text = createGizmo(renderText),
 })

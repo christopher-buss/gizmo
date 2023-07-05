@@ -48,7 +48,7 @@ The global style used by default when creating or drawing a gizmo
 
 ## Examples
 
-### Drawing an array frame-by-frame
+### Drawing an arrow frame-by-frame
 
 ```lua
 RunService.PostSimulation:Connect(function ()
@@ -56,7 +56,7 @@ RunService.PostSimulation:Connect(function ()
 end)
 ```
 
-### Drawing an array with an object
+### Drawing an arrow with an object
 
 
 ```lua
