@@ -4,6 +4,10 @@
   "description": "gizmo is a visual debug library designed for the Roblox game engine.",
   "main": "src/gizmo.lua",
   "types": "src/gizmo.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/christopher-buss/gizmo.git"
+  },
   "devDependencies": {
     "@rbxts/compiler-types": "^2.1.0-types.1",
     "@rbxts/services": "^1.5.1",
