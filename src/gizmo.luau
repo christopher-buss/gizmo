@@ -18,6 +18,8 @@ local DEFAULT_COLOR = Color3.fromRGB(255, 255, 0)
 local CollectionService = game:GetService("CollectionService")
 local RunService = game:GetService("RunService")
 
+local Event = RunService:IsServer() and RunService.Heartbeat or RunService.RenderStepped
+
 -------------------------------------------------------------------------------
 -- Type Definitions
 -------------------------------------------------------------------------------
@@ -417,14 +419,19 @@ end
 -- State Management
 -------------------------------------------------------------------------------
 
+local onRender = nil
+
 local function enable()
 	active = true
-	RunService:BindToRenderStep(moduleId, Enum.RenderPriority.Last.Value + 1, update)
+	onRender = Event:Connect(update)
 end
 
 local function disable()
 	active = false
-	RunService:UnbindFromRenderStep(moduleId)
+	if onRender then
+		onRender:Disconnect()
+		onRender = nil
+	end
 end
 
 -------------------------------------------------------------------------------

@@ -5,7 +5,7 @@
 declare interface GizmoInstance<T extends (...args: Array<any>) => void> {
 	create(...args: Parameters<T>): GizmoInstance<T>;
 	disable(): void;
-	draw(...args: Parameters<T>): void;
+	draw: (...args: Parameters<T>) => void;
 	enable(): void;
 	update(...args: Parameters<T>): void;
 }
