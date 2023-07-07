@@ -41,7 +41,6 @@ type Gizmo = {
 -- Internal Variables
 -------------------------------------------------------------------------------
 
-local moduleId = script:GetFullName()
 local active = false
 
 local scheduledObjects = {}
@@ -443,8 +442,8 @@ return table.freeze({
 	style = globalStyle,
 
 	-- Functions
-	enableGizmos = enable,
-	disableGizmos = disable,
+	enable = enable,
+	disable = disable,
 
 	-- Gizmos
 	point = createGizmo(renderPoint),
