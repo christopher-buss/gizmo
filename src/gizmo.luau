@@ -370,6 +370,7 @@ local function fillOutStyle(optional_style: OptionalStyle)
 	for key, value in optional_style do
 		style[key] = value
 	end
+	return style
 end
 
 local function createGizmo<T...>(render: (Style, T...) -> ())
