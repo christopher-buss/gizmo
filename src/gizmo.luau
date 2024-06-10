@@ -397,13 +397,20 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 		}, class)
 	end
 
+	function class.createWithStyle(style: OptionalStyle, ...: T...): Object
+		return setmetatable({
+			__properties = table.pack(...),
+			style = fillOutStyle(style),
+		}, class)
+	end
+
 	function class.__index:enable()
 		scheduledObjects[self] = true
 	end
 
 	function class.__index:setStyle(optional_style: OptionalStyle)
 		self.style = fillOutStyle(optional_style);
-		return self
+		return self;
 	end
 
 	function class.__index:disable()

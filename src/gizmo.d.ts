@@ -14,10 +14,11 @@ type OptionalStyle = Partial<Style>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare interface GizmoClass<T extends (...args: Array<any>) => void> {
 	create: (...args: Parameters<T>) => GizmoClass<T>;
+	createWithStyle: (optional_style: OptionalStyle, ...args: Parameters<T>) => GizmoClass<T>;
 	disable(): void;
 	draw: (...args: Parameters<T>) => void;
 	drawWithStyle: (optional_style: OptionalStyle, ...args: Parameters<T>) => void;
-	setStyle(optional_style: OptionalStyle): GizmoClass<T>;
+	setStyle(optional_style: OptionalStyle): void;
 	enable(): void;
 	update(...args: Parameters<T>): void;
 
