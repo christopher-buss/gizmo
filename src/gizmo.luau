@@ -365,9 +365,14 @@ end
 -- Gizmo Class Wrapper
 -------------------------------------------------------------------------------
 
-local function fillOutStyle(optional_style: OptionalStyle)
+local function fillOutStyle(optionalStyle: OptionalStyle)
+	--avoids cloning table if gizmo is disabled
+	if not active then
+		return globalStyle
+	end
+
 	local style = table.clone(globalStyle);
-	for key, value in optional_style do
+	for key, value in optionalStyle do
 		style[key] = value
 	end
 	return style
@@ -452,15 +457,12 @@ end
 -------------------------------------------------------------------------------
 -- State Management
 -------------------------------------------------------------------------------
---will turn gizmo into one liner in require
-local export_table
 
 local onRender = nil
 
 local function enable()
 	active = true
 	onRender = Event:Connect(update)
-	return export_table
 end
 
 local function disable()
@@ -469,13 +471,13 @@ local function disable()
 		onRender:Disconnect()
 		onRender = nil
 	end
-	return export_table
 end
 
 -------------------------------------------------------------------------------
 -- Exports
 -------------------------------------------------------------------------------
-export_table = table.freeze({
+
+return table.freeze({
 	-- Globals
 	style = globalStyle,
 
@@ -495,4 +497,3 @@ export_table = table.freeze({
 	plane = createGizmo(renderPlane),
 	text = createGizmo(renderText),
 })
-return export_table
