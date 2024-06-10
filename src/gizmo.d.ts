@@ -19,6 +19,7 @@ declare interface GizmoClass<T extends (...args: Array<any>) => void> {
 	draw: (...args: Parameters<T>) => void;
 	drawWithStyle: (optionalStyle: OptionalStyle, ...args: Parameters<T>) => void;
 	setStyle(optionalStyle: OptionalStyle): void;
+	getStyle(): Style;
 	enable(): void;
 	update(...args: Parameters<T>): void;
 }
