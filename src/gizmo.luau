@@ -418,6 +418,10 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 		return self;
 	end
 
+	function class.__index:getStyle()
+		return table.clone(self.style);
+	end
+
 	function class.__index:disable()
 		scheduledObjects[self] = nil
 	end
