@@ -444,12 +444,15 @@ end
 -------------------------------------------------------------------------------
 -- State Management
 -------------------------------------------------------------------------------
+--will turn gizmo into one liner in require
+local export_table
 
 local onRender = nil
 
 local function enable()
 	active = true
 	onRender = Event:Connect(update)
+	return export_table
 end
 
 local function disable()
@@ -458,13 +461,13 @@ local function disable()
 		onRender:Disconnect()
 		onRender = nil
 	end
+	return export_table
 end
 
 -------------------------------------------------------------------------------
 -- Exports
 -------------------------------------------------------------------------------
-
-return table.freeze({
+export_table = table.freeze({
 	-- Globals
 	style = globalStyle,
 
@@ -484,3 +487,4 @@ return table.freeze({
 	plane = createGizmo(renderPlane),
 	text = createGizmo(renderText),
 })
+return export_table
