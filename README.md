@@ -26,21 +26,39 @@ Renders the gizmo for a single frame
 
 Creates a new object which can be rendered over multiple frames
 
-#### object:enable() -> void
+### gizmo.\<type\>.createWithStyle(optional_style, ...) -> object
+
+Creates a new object and applies the style
+```ts
+const arrow = Gizmo.arrow.createWithStyle({
+  color: new Color3(1, 0, 0),
+  scale: 2
+}, Vector3.zero, Vector3.one.mul(15));
+```
+
+#### object.enable() => void
 
 Starts rendering the gizmo
 
-#### object:disable() -> void
+#### object.disable() => void
 
 Stops rendering the gizmo
 
-#### object:update(...) -> void
+#### object.update(...) => void
 
 Updates the gizmos appearance
 
 #### object.style
 
 Controls the 'style' of the gizmo
+
+#### object.setStyle(optional_style) => void
+Controls the 'style' of the gizmo
+```ts
+arrow.setStyle({
+  alwaysOnTop: true
+})
+```
 
 ### gizmo.style
 
@@ -50,20 +68,31 @@ The global style used by default when creating or drawing a gizmo
 
 ### Drawing an arrow frame-by-frame
 
-```lua
-RunService.PostSimulation:Connect(function ()
-  gizmo.arrow.draw(start, finish)
-end)
+```ts
+RunService.PostSimulation.Connect(() => {
+  Gizmo.arrow.draw(start, finish);
+})
+```
+
+### Drawing a ray frame-by-frame with style
+
+```ts
+RunService.PostSimulation.Connect(() => {
+  //allows to apply the style to the temporary object
+  Gizmo.arrow.drawWithStyle({
+    alwaysOnTop: true
+  }, start, finish);
+})
 ```
 
 ### Drawing an arrow with an object
 
 
-```lua
-local arrow = gizmo.arrow.create(start, finish)
-arrow:enable()
+```ts
+const arrow = Gizmo.arrow.create(start, finish);
+arrow.enable();
 
-RunService.PostSimulation:Connect(function ()
-  arrow:update(start, finish)
-end)
+RunService.PostSimulation.Connect(() => {
+  arrow.update(start, finish);
+})
 ```
