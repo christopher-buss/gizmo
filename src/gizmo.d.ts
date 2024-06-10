@@ -25,6 +25,8 @@ declare namespace Gizmo {
 
 	export function enable(): void;
 	export function disable(): void;
+	export function push(): void;
+	export function pop(): void;
 
 	export const point: GizmoClass<(position: Vector3) => void>;
 	export const box: GizmoClass<(orientation: CFrame, size: Vector3) => void>;
