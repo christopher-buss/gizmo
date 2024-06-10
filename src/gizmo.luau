@@ -403,6 +403,7 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 
 	function class.__index:setStyle(optional_style: OptionalStyle)
 		self.style = fillOutStyle(optional_style);
+		return self
 	end
 
 	function class.__index:disable()

@@ -17,7 +17,7 @@ declare interface GizmoClass<T extends (...args: Array<any>) => void> {
 	disable(): void;
 	draw: (...args: Parameters<T>) => void;
 	drawWithStyle: (optional_style: OptionalStyle, ...args: Parameters<T>) => void;
-	setStyle(optional_style: OptionalStyle): void;
+	setStyle(optional_style: OptionalStyle): GizmoClass<T>;
 	enable(): void;
 	update(...args: Parameters<T>): void;
 
@@ -27,8 +27,8 @@ declare interface GizmoClass<T extends (...args: Array<any>) => void> {
 declare namespace Gizmo {
 	export const style: Style;
 
-	export function enable(): void;
-	export function disable(): void;
+	export function enable(): typeof Gizmo;
+	export function disable(): typeof Gizmo;
 
 	export const point: GizmoClass<(position: Vector3) => void>;
 	export const box: GizmoClass<(orientation: CFrame, size: Vector3) => void>;
