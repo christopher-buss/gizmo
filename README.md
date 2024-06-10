@@ -80,7 +80,9 @@ RunService.PostSimulation.Connect(() => {
 RunService.PostSimulation.Connect(() => {
   //allows to apply the style to the temporary object
   Gizmo.arrow.drawWithStyle({
-    alwaysOnTop: true
+    alwaysOnTop: true,
+    color: new Color3(1, 0, 0),
+    scale: 2,
   }, start, finish);
 })
 ```
