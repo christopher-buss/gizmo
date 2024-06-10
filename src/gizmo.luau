@@ -32,6 +32,15 @@ type Style = {
 	scale: number,
 }
 
+--optional style that will be filled out with global Style
+type OptionalStyle = {
+	alwaysOnTop: boolean?,
+	color: Color3?,
+	layer: number?,
+	transparency: number?,
+	scale: number?,
+}
+
 type Gizmo = {
 	__properties: { [number]: any, n: number },
 	style: Style,
@@ -271,7 +280,7 @@ local function renderWireSphere(style, position: Vector3, radius: number)
 	adornmentX.InnerRadius = innerRadius
 	adornmentX.Height = style.scale
 	adornmentX.CFrame = relativeOrientation
-	applyStyleToAdornment(adornmentX)
+	applyStyleToAdornment(style, adornmentX)
 	table.insert(renderQueue, adornmentX)
 	adornmentY.Radius = outerRadius
 	adornmentY.InnerRadius = innerRadius
@@ -356,12 +365,25 @@ end
 -- Gizmo Class Wrapper
 -------------------------------------------------------------------------------
 
+local function fillOutStyle(optional_style: OptionalStyle)
+	local style = table.clone(globalStyle);
+	for key, value in optional_style do
+		style[key] = value
+	end
+end
+
 local function createGizmo<T...>(render: (Style, T...) -> ())
 	local class = { __index = {} }
 
 	function class.draw(...: T...)
 		if active then
 			render(globalStyle, ...)
+		end
+	end
+
+	function class.drawWithStyle(style: OptionalStyle, ...: T...)
+		if active then
+			render(fillOutStyle(style), ...)
 		end
 	end
 
@@ -376,6 +398,10 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 
 	function class.__index:enable()
 		scheduledObjects[self] = true
+	end
+
+	function class.__index:setStyle(optional_style: OptionalStyle)
+		self.style = fillOutStyle(optional_style);
 	end
 
 	function class.__index:disable()
