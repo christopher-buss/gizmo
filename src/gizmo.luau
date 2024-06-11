@@ -371,7 +371,7 @@ local function fillOutStyle(optionalStyle: OptionalStyle)
 		return globalStyle
 	end
 
-	local style = table.clone(globalStyle);
+	local style = table.clone(globalStyle)
 	for key, value in optionalStyle do
 		style[key] = value
 	end
@@ -414,12 +414,12 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	end
 
 	function class.__index:setStyle(optional_style: OptionalStyle)
-		self.style = fillOutStyle(optional_style);
-		return self;
+		self.style = fillOutStyle(optional_style)
+		return self
 	end
 
 	function class.__index:getStyle()
-		return table.clone(self.style);
+		return table.clone(self.style)
 	end
 
 	function class.__index:disable()

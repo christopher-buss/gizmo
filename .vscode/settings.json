@@ -10,5 +10,16 @@
 		"editor.formatOnSave": true
 	},
 	"eslint.run": "onType",
-	"eslint.format.enable": true
+	"eslint.format.enable": true,
+	// Enable the ESlint flat config support
+	"eslint.useFlatConfig": true,
+	"eslint.validate": [
+		"typescript",
+		"typescriptreact",
+		"markdown",
+		"json",
+		"jsonc",
+		"yaml",
+		"toml"
+	]
 }
