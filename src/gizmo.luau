@@ -199,17 +199,19 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	local class = { __index = {} }
 
 	function class.draw(...: T...)
-		if active and out.style.visible then
-			render(globalStyle, ...)
-		end
+		if not active then return end
+		if not out.style.visible then return end
+
+		render(globalStyle, ...)
 	end
 
 	function class.drawWithStyle(style: OptionalStyle, ...: T...)
-		if active then
-			local filledStyle = fillOutStyle(style)
-			if not filledStyle.visible then return end
-			render(filledStyle, ...)
-		end
+		if not active then return end
+
+		local filledStyle = fillOutStyle(style)
+		if not filledStyle.visible then return end
+
+		render(filledStyle, ...)
 	end
 
 	type Object = typeof(setmetatable({} :: Gizmo, class))
@@ -250,9 +252,8 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	end
 
 	function class.__index:__render()
-		if self.style.visible then
-			render(self.style, table.unpack(self.__properties))
-		end
+		if not self.style.visible then return end
+		render(self.style, table.unpack(self.__properties))
 	end
 
 	return table.freeze(class)
