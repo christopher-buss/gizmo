@@ -487,7 +487,9 @@ local onRender = nil
 
 local function enable()
 	active = true
-	onRender = Event:Connect(update)
+	if not onRender then
+		onRender = Event:Connect(update)
+	end
 end
 out.enable = enable
 
