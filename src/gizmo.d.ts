@@ -7,6 +7,7 @@ declare interface Style {
 	layer: number;
 	scale: number;
 	transparency: number;
+	visible: boolean;
 }
 
 type OptionalStyle = Partial<Style>;
@@ -29,9 +30,11 @@ declare interface GizmoClass<
 
 declare namespace Gizmo {
 	export const style: Style;
-
+	
 	export function enable(): typeof Gizmo;
 	export function disable(): typeof Gizmo;
+	export function pop(): void;
+	export function push(): void;
 
 	export const point: GizmoClass<(position: Vector3) => void>;
 	export const box: GizmoClass<(orientation: CFrame, size: Vector3) => void>;

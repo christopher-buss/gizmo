@@ -30,6 +30,7 @@ type Style = {
 	layer: number,
 	transparency: number,
 	scale: number,
+	visible: boolean,
 }
 
 --optional style that will be filled out with global Style
@@ -49,6 +50,8 @@ type Gizmo = {
 -------------------------------------------------------------------------------
 -- Internal Variables
 -------------------------------------------------------------------------------
+
+local out = {}
 
 local active = false
 
@@ -94,7 +97,10 @@ local globalStyle: Style = {
 	layer = 1,
 	transparency = 0,
 	scale = DEFAULT_SCALE,
+	visible = true,
 }
+
+out.style = globalStyle
 
 -------------------------------------------------------------------------------
 -- Update Instance Visibility
@@ -171,6 +177,88 @@ local function applyStyleToHighlight(style: Style, highlight)
 		else Enum.HighlightDepthMode.Occluded
 end
 
+
+-------------------------------------------------------------------------------
+-- Gizmo Class Wrapper
+-------------------------------------------------------------------------------
+
+local function fillOutStyle(optionalStyle: OptionalStyle, referenceStyle: Style?)
+	--avoids cloning table if gizmo is disabled
+	if not active then
+		return referenceStyle or out.style
+	end
+
+	local style = table.clone(referenceStyle or out.style)
+	for key, value in optionalStyle do
+		style[key] = value
+	end
+	return style
+end
+
+local function createGizmo<T...>(render: (Style, T...) -> ())
+	local class = { __index = {} }
+
+	function class.draw(...: T...)
+		if not active then return end
+		if not out.style.visible then return end
+
+		render(globalStyle, ...)
+	end
+
+	function class.drawWithStyle(style: OptionalStyle, ...: T...)
+		if not active then return end
+
+		local filledStyle = fillOutStyle(style)
+		if not filledStyle.visible then return end
+
+		render(filledStyle, ...)
+	end
+
+	type Object = typeof(setmetatable({} :: Gizmo, class))
+
+	function class.create(...: T...): Object
+		return setmetatable({
+			__properties = table.pack(...),
+			style = table.clone(out.style),
+		}, class)
+	end
+
+	function class.createWithStyle(style: OptionalStyle, ...: T...): Object
+		return setmetatable({
+			__properties = table.pack(...),
+			style = fillOutStyle(style),
+		}, class)
+	end
+
+	function class.__index:enable()
+		scheduledObjects[self] = true
+	end
+
+	function class.__index:setStyle(optional_style: OptionalStyle)
+		self.style = fillOutStyle(optional_style, self.style)
+		return self
+	end
+
+	function class.__index:getStyle()
+		return table.clone(self.style)
+	end
+
+	function class.__index:disable()
+		scheduledObjects[self] = nil
+	end
+
+	function class.__index:update(...: T...)
+		self.__properties = table.pack(...)
+	end
+
+	function class.__index:__render()
+		if not self.style.visible then return end
+		render(self.style, table.unpack(self.__properties))
+	end
+
+	return table.freeze(class)
+end
+
 -------------------------------------------------------------------------------
 -- Render Instances
 -------------------------------------------------------------------------------
@@ -182,6 +270,7 @@ local function renderPoint(style: Style, position: Vector3)
 	applyStyleToAdornment(style, adornment)
 	table.insert(renderQueue, adornment)
 end
+out.point = createGizmo(renderPoint)
 
 local function renderBox(style, orientation: CFrame, size: Vector3)
 	local adornment = get("BoxHandleAdornment")
@@ -190,6 +279,7 @@ local function renderBox(style, orientation: CFrame, size: Vector3)
 	applyStyleToAdornment(style, adornment)
 	table.insert(renderQueue, adornment)
 end
+out.box = createGizmo(renderBox)
 
 -- If anyone has a better way to do this which is just as performant please let me know
 local function renderWireBox(style, orientation: CFrame, size: Vector3)
@@ -260,6 +350,7 @@ local function renderWireBox(style, orientation: CFrame, size: Vector3)
 	table.insert(renderQueue, adornmentZ3)
 	table.insert(renderQueue, adornmentZ4)
 end
+out.wirebox = createGizmo(renderWireBox)
 
 local function renderSphere(style, position: Vector3, radius: number)
 	local adornment = get("SphereHandleAdornment")
@@ -268,6 +359,7 @@ local function renderSphere(style, position: Vector3, radius: number)
 	applyStyleToAdornment(style, adornment)
 	table.insert(renderQueue, adornment)
 end
+out.sphere = createGizmo(renderSphere)
 
 local function renderWireSphere(style, position: Vector3, radius: number)
 	local offset = style.scale * 0.5
@@ -295,6 +387,7 @@ local function renderWireSphere(style, position: Vector3, radius: number)
 	applyStyleToAdornment(style, adornmentZ)
 	table.insert(renderQueue, adornmentZ)
 end
+out.wiresphere = createGizmo(renderWireSphere)
 
 local function renderLine(style, from: Vector3, to: Vector3)
 	local distance = (to - from).Magnitude
@@ -306,6 +399,7 @@ local function renderLine(style, from: Vector3, to: Vector3)
 	applyStyleToAdornment(style, adornment)
 	table.insert(renderQueue, adornment)
 end
+out.line = createGizmo(renderLine)
 
 local function renderArrow(style, from: Vector3, to: Vector3)
 	local coneHeight = style.scale * 3
@@ -325,10 +419,12 @@ local function renderArrow(style, from: Vector3, to: Vector3)
 	table.insert(renderQueue, adornmentLine)
 	table.insert(renderQueue, adornmentCone)
 end
+out.arrow = createGizmo(renderArrow)
 
 local function renderRay(style, from: Vector3, direction: Vector3)
 	return renderArrow(style, from, from + direction)
 end
+out.ray = createGizmo(renderRay)
 
 local function renderPlane(style, cf: CFrame, size: Vector2?)
 	size = size or Vector2.new(10, 10)
@@ -338,6 +434,7 @@ local function renderPlane(style, cf: CFrame, size: Vector2?)
 	applyStyleToAdornment(style, adornmentPlane)
 	table.insert(renderQueue, adornmentPlane)
 end
+out.plane = createGizmo(renderPlane)
 
 local function renderText(style, position: Vector3, text: string, ...)
 	local safeText = tostring(text):format(...)
@@ -360,82 +457,7 @@ local function renderText(style, position: Vector3, text: string, ...)
 	table.insert(renderQueue, label)
 	table.insert(renderQueue, billboard)
 end
-
--------------------------------------------------------------------------------
--- Gizmo Class Wrapper
--------------------------------------------------------------------------------
-
-local function fillOutStyle(optionalStyle: OptionalStyle)
-	--avoids cloning table if gizmo is disabled
-	if not active then
-		return globalStyle
-	end
-
-	local style = table.clone(globalStyle)
-	for key, value in optionalStyle do
-		style[key] = value
-	end
-	return style
-end
-
-local function createGizmo<T...>(render: (Style, T...) -> ())
-	local class = { __index = {} }
-
-	function class.draw(...: T...)
-		if active then
-			render(globalStyle, ...)
-		end
-	end
-
-	function class.drawWithStyle(style: OptionalStyle, ...: T...)
-		if active then
-			render(fillOutStyle(style), ...)
-		end
-	end
-
-	type Object = typeof(setmetatable({} :: Gizmo, class))
-
-	function class.create(...: T...): Object
-		return setmetatable({
-			__properties = table.pack(...),
-			style = table.clone(globalStyle),
-		}, class)
-	end
-
-	function class.createWithStyle(style: OptionalStyle, ...: T...): Object
-		return setmetatable({
-			__properties = table.pack(...),
-			style = fillOutStyle(style),
-		}, class)
-	end
-
-	function class.__index:enable()
-		scheduledObjects[self] = true
-	end
-
-	function class.__index:setStyle(optional_style: OptionalStyle)
-		self.style = fillOutStyle(optional_style)
-		return self
-	end
-
-	function class.__index:getStyle()
-		return table.clone(self.style)
-	end
-
-	function class.__index:disable()
-		scheduledObjects[self] = nil
-	end
-
-	function class.__index:update(...: T...)
-		self.__properties = table.pack(...)
-	end
-
-	function class.__index:__render()
-		render(self.style, table.unpack(self.__properties))
-	end
-
-	return table.freeze(class)
-end
+out.text = createGizmo(renderText)
 
 -------------------------------------------------------------------------------
 -- Render Update
@@ -456,6 +478,10 @@ local function update()
 	for _, instance in ipairs(queue) do
 		release(instance)
 	end
+	if out.style ~= globalStyle then
+		warn("too few calls to Gizmo.pop()")
+		out.style = globalStyle
+	end
 end
 
 -------------------------------------------------------------------------------
@@ -466,8 +492,11 @@ local onRender = nil
 
 local function enable()
 	active = true
-	onRender = Event:Connect(update)
+	if not onRender then
+		onRender = Event:Connect(update)
+	end
 end
+out.enable = enable
 
 local function disable()
 	active = false
@@ -476,6 +505,24 @@ local function disable()
 		onRender = nil
 	end
 end
+out.disable = disable
+
+local function pushStyle()
+	local parent = out.style
+	out.style = table.clone(out.style)
+	out.style._parent = parent
+end
+out.push = pushStyle
+
+local function popStyle()
+	local parent = out.style._parent
+	if parent == nil then
+		warn(debug.traceback("too many calls to Gizmo.pop()", 2))
+		return
+	end
+	out.style = parent
+end
+out.pop = popStyle
 
 -- Plugin support
 workspace:GetAttributeChangedSignal("GizmosEnabled"):Connect(function()
@@ -494,23 +541,4 @@ end
 -- Exports
 -------------------------------------------------------------------------------
 
-return table.freeze({
-	-- Globals
-	style = globalStyle,
-
-	-- Functions
-	enable = enable,
-	disable = disable,
-
-	-- Gizmos
-	point = createGizmo(renderPoint),
-	box = createGizmo(renderBox),
-	wirebox = createGizmo(renderWireBox),
-	sphere = createGizmo(renderSphere),
-	wiresphere = createGizmo(renderWireSphere),
-	line = createGizmo(renderLine),
-	arrow = createGizmo(renderArrow),
-	ray = createGizmo(renderRay),
-	plane = createGizmo(renderPlane),
-	text = createGizmo(renderText),
-})
+return out
