@@ -455,17 +455,19 @@ end
 out.disable = disable
 
 local function pushStyle()
-	out.style = setmetatable({}, {__index = out.style}) :: any
+	local parent = out.style
+	out.style = table.clone(out.style)
+	out.style._parent = parent
 end
 out.push = pushStyle
 
 local function popStyle()
-	local mt = getmetatable(out.style :: any)
-	if mt == nil or mt.__index == nil then
+	local parent = out.style._parent
+	if parent == nil then
 		warn(debug.traceback("too many calls to Gizmo.pop()", 2))
 		return
 	end
-	out.style = mt.__index
+	out.style = parent
 end
 out.pop = popStyle
 
