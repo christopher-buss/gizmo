@@ -182,13 +182,13 @@ end
 -- Gizmo Class Wrapper
 -------------------------------------------------------------------------------
 
-local function fillOutStyle(optionalStyle: OptionalStyle)
+local function fillOutStyle(optionalStyle: OptionalStyle, referenceStyle: Style?)
 	--avoids cloning table if gizmo is disabled
 	if not active then
-		return globalStyle
+		return referenceStyle or out.style
 	end
 
-	local style = table.clone(globalStyle)
+	local style = table.clone(referenceStyle or out.style)
 	for key, value in optionalStyle do
 		style[key] = value
 	end
@@ -215,7 +215,7 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	function class.create(...: T...): Object
 		return setmetatable({
 			__properties = table.pack(...),
-			style = table.clone(globalStyle),
+			style = table.clone(out.style),
 		}, class)
 	end
 
@@ -231,7 +231,7 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	end
 
 	function class.__index:setStyle(optional_style: OptionalStyle)
-		self.style = fillOutStyle(optional_style)
+		self.style = fillOutStyle(optional_style, self.style)
 		return self
 	end
 
