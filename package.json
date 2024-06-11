@@ -1,7 +1,7 @@
 {
 	"name": "@rbxts/gizmo",
 	"type": "module",
-	"version": "3.0.0",
+	"version": "3.0.1",
 	"packageManager": "pnpm@9.1.4",
 	"description": "gizmo is a visual debug library designed for the Roblox game engine.",
 	"author": "Brad Sharp",
