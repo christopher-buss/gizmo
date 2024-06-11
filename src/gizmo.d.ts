@@ -9,22 +9,26 @@ declare type Style = {
 	scale: number;
 };
 
+type OptionalStyle = Partial<Style>;
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 declare interface GizmoClass<T extends (...args: Array<any>) => void> {
 	create: (...args: Parameters<T>) => GizmoClass<T>;
+	createWithStyle: (optionalStyle: OptionalStyle, ...args: Parameters<T>) => GizmoClass<T>;
 	disable(): void;
 	draw: (...args: Parameters<T>) => void;
+	drawWithStyle: (optionalStyle: OptionalStyle, ...args: Parameters<T>) => void;
+	setStyle(optionalStyle: OptionalStyle): void;
+	getStyle(): Style;
 	enable(): void;
 	update(...args: Parameters<T>): void;
-
-	style: Style;
 }
 
 declare namespace Gizmo {
 	export const style: Style;
 
-	export function enable(): void;
-	export function disable(): void;
+	export function enable(): typeof Gizmo;
+	export function disable(): typeof Gizmo;
 
 	export const point: GizmoClass<(position: Vector3) => void>;
 	export const box: GizmoClass<(orientation: CFrame, size: Vector3) => void>;
