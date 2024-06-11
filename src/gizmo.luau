@@ -199,14 +199,16 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	local class = { __index = {} }
 
 	function class.draw(...: T...)
-		if active then
+		if active and out.style.visible then
 			render(globalStyle, ...)
 		end
 	end
 
 	function class.drawWithStyle(style: OptionalStyle, ...: T...)
 		if active then
-			render(fillOutStyle(style), ...)
+			local filledStyle = fillOutStyle(style)
+			if not filledStyle.visible then return end
+			render(filledStyle, ...)
 		end
 	end
 
@@ -248,7 +250,9 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	end
 
 	function class.__index:__render()
-		render(self.style, table.unpack(self.__properties))
+		if self.style.visible then
+			render(self.style, table.unpack(self.__properties))
+		end
 	end
 
 	return table.freeze(class)
