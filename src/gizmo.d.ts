@@ -7,6 +7,7 @@ declare type Style = {
 	layer: number;
 	transparency: number;
 	scale: number;
+	visible: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

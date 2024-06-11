@@ -30,6 +30,7 @@ type Style = {
 	layer: number,
 	transparency: number,
 	scale: number,
+	visible: boolean,
 }
 
 type Gizmo = {
@@ -87,6 +88,7 @@ local globalStyle: Style = {
 	layer = 1,
 	transparency = 0,
 	scale = DEFAULT_SCALE,
+	visible = true,
 }
 
 out.style = globalStyle
@@ -175,7 +177,7 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	local class = { __index = {} }
 
 	function class.draw(...: T...)
-		if active then
+		if active and out.style.visible then
 			render(out.style, ...)
 		end
 	end
@@ -202,7 +204,9 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	end
 
 	function class.__index:__render()
-		render(self.style, table.unpack(self.__properties))
+		if self.style.visible then
+			render(self.style, table.unpack(self.__properties))
+		end
 	end
 
 	return table.freeze(class)
