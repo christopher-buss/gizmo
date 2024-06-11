@@ -477,6 +477,19 @@ local function disable()
 	end
 end
 
+-- Plugin support
+workspace:GetAttributeChangedSignal("GizmosEnabled"):Connect(function()
+	if workspace:GetAttribute("GizmosEnabled") then
+		enable()
+	else
+		disable()
+	end
+end)
+
+if workspace:GetAttribute("GizmosEnabled") then
+	enable()
+end
+
 -------------------------------------------------------------------------------
 -- Exports
 -------------------------------------------------------------------------------
