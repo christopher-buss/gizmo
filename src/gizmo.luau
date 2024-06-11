@@ -33,6 +33,15 @@ type Style = {
 	visible: boolean,
 }
 
+--optional style that will be filled out with global Style
+type OptionalStyle = {
+	alwaysOnTop: boolean?,
+	color: Color3?,
+	layer: number?,
+	transparency: number?,
+	scale: number?,
+}
+
 type Gizmo = {
 	__properties: { [number]: any, n: number },
 	style: Style,
@@ -173,12 +182,31 @@ end
 -- Gizmo Class Wrapper
 -------------------------------------------------------------------------------
 
+local function fillOutStyle(optionalStyle: OptionalStyle)
+	--avoids cloning table if gizmo is disabled
+	if not active then
+		return globalStyle
+	end
+
+	local style = table.clone(globalStyle)
+	for key, value in optionalStyle do
+		style[key] = value
+	end
+	return style
+end
+
 local function createGizmo<T...>(render: (Style, T...) -> ())
 	local class = { __index = {} }
 
 	function class.draw(...: T...)
-		if active and out.style.visible then
-			render(out.style, ...)
+		if active then
+			render(globalStyle, ...)
+		end
+	end
+
+	function class.drawWithStyle(style: OptionalStyle, ...: T...)
+		if active then
+			render(fillOutStyle(style), ...)
 		end
 	end
 
@@ -187,12 +215,28 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	function class.create(...: T...): Object
 		return setmetatable({
 			__properties = table.pack(...),
-			style = table.clone(out.style),
+			style = table.clone(globalStyle),
+		}, class)
+	end
+
+	function class.createWithStyle(style: OptionalStyle, ...: T...): Object
+		return setmetatable({
+			__properties = table.pack(...),
+			style = fillOutStyle(style),
 		}, class)
 	end
 
 	function class.__index:enable()
 		scheduledObjects[self] = true
+	end
+
+	function class.__index:setStyle(optional_style: OptionalStyle)
+		self.style = fillOutStyle(optional_style)
+		return self
+	end
+
+	function class.__index:getStyle()
+		return table.clone(self.style)
 	end
 
 	function class.__index:disable()
@@ -204,9 +248,7 @@ local function createGizmo<T...>(render: (Style, T...) -> ())
 	end
 
 	function class.__index:__render()
-		if self.style.visible then
-			render(self.style, table.unpack(self.__properties))
-		end
+		render(self.style, table.unpack(self.__properties))
 	end
 
 	return table.freeze(class)
@@ -474,6 +516,19 @@ local function popStyle()
 	out.style = parent
 end
 out.pop = popStyle
+
+-- Plugin support
+workspace:GetAttributeChangedSignal("GizmosEnabled"):Connect(function()
+	if workspace:GetAttribute("GizmosEnabled") then
+		enable()
+	else
+		disable()
+	end
+end)
+
+if workspace:GetAttribute("GizmosEnabled") then
+	enable()
+end
 
 -------------------------------------------------------------------------------
 -- Exports

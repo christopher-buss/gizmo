@@ -1,44 +1,44 @@
 {
-  "name": "@rbxts/gizmo",
-  "version": "2.0.5",
-  "description": "gizmo is a visual debug library designed for the Roblox game engine.",
-  "main": "src/gizmo.lua",
-  "types": "src/gizmo.d.ts",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/christopher-buss/gizmo.git"
-  },
-  "devDependencies": {
-    "@rbxts/compiler-types": "^2.1.0-types.1",
-    "@rbxts/services": "^1.5.1",
-    "@rbxts/types": "^1.0.703",
-    "@typescript-eslint/eslint-plugin": "^5.61.0",
-    "@typescript-eslint/parser": "^5.61.0",
-    "eslint": "^8.44.0",
-    "eslint-config-prettier": "^8.8.0",
-    "eslint-plugin-prettier": "^4.2.1",
-    "eslint-plugin-roblox-ts": "^0.0.35",
-    "prettier": "^2.8.8",
-    "roblox-ts": "^2.1.0",
-    "typescript": "=4.9.4"
-  },
-  "scripts": {
-    "build": "npx rbxtsc",
-    "watch": "rbxtsc -w",
-    "prepublishOnly": "npm run build"
-  },
-  "keywords": [],
-  "author": "Brad Sharp",
-  "contributors": [
-    "Ethan Curtis",
-    "Christopher Buss"
-  ],
-  "license": "MIT",
-  "files": [
-    "src/gizmo.luau",
-    "src/gizmo.d.ts"
-  ],
-  "publishConfig": {
-    "access": "public"
-  }
+	"name": "@rbxts/gizmo",
+	"type": "module",
+	"version": "3.0.1",
+	"packageManager": "pnpm@9.1.4",
+	"description": "gizmo is a visual debug library designed for the Roblox game engine.",
+	"author": "Brad Sharp",
+	"contributors": [
+		"Ethan Curtis",
+		"Christopher Buss"
+	],
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/christopher-buss/gizmo.git"
+	},
+	"keywords": [],
+	"main": "src/gizmo.lua",
+	"types": "src/gizmo.d.ts",
+	"files": [
+		"src/gizmo.d.ts",
+		"src/gizmo.luau"
+	],
+	"scripts": {
+		"build": "npx rbxtsc",
+		"watch": "rbxtsc -w",
+		"prepublishOnly": "npm run build",
+		"release": "bumpp && pnpm publish --p"
+	},
+	"devDependencies": {
+		"@isentinel/eslint-config": "^0.5.7",
+		"@rbxts/compiler-types": "2.3.0-types.1",
+		"@rbxts/services": "^1.5.4",
+		"@rbxts/types": "^1.0.780",
+		"bumpp": "^9.4.1",
+		"bundle-require": "^5.0.0",
+		"eslint": "^9.4.0",
+		"roblox-ts": "^2.3.0",
+		"typescript": "5.4.5"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }

@@ -1,29 +1,30 @@
 {
 	"compilerOptions": {
-		// required
-		"allowSyntheticDefaultImports": true,
-		"downlevelIteration": true,
+		"incremental": true,
+		"tsBuildInfoFile": "out/tsconfig.tsbuildinfo",
+		"target": "ESNext",
 		"jsx": "react",
-		"jsxFactory": "Roact.createElement",
-		"jsxFragmentFactory": "Roact.createFragment",
+		"jsxFactory": "React.createElement",
+		"jsxFragmentFactory": "React.Fragment",
+		"moduleDetection": "force",
+		"noLib": true,
+		"experimentalDecorators": true,
+		"baseUrl": "src",
+		"rootDir": "src",
 		"module": "commonjs",
 		"moduleResolution": "Node",
-		"noLib": true,
 		"resolveJsonModule": true,
-		"experimentalDecorators": true,
-		"forceConsistentCasingInFileNames": true,
-		"moduleDetection": "force",
-		"strict": true,
-		"target": "ESNext",
 		"typeRoots": [
 			"node_modules/@rbxts"
 		],
-		// configurable
-		"rootDir": "src",
+		"strict": true,
+		"declaration": true,
+		"downlevelIteration": true,
 		"outDir": "out",
-		"baseUrl": "src",
-		"incremental": true,
-		"tsBuildInfoFile": "out/tsconfig.tsbuildinfo",
-		"declaration": true
-	}
+		"allowSyntheticDefaultImports": true,
+		"forceConsistentCasingInFileNames": true
+	},
+	"exclude": [
+		"./eslint.config.ts"
+	]
 }
