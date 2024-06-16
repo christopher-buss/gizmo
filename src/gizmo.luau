@@ -107,8 +107,10 @@ local frameIndex = 0
 local function processBuffer()
 	--checks every 2nd frame
 	frameIndex = (frameIndex + 1) % 2
-	if(frameIndex == 1) then return end
-	
+	if frameIndex == 1 then
+		return
+	end
+
 	for instance in instancesBuffer do
 		instance.Enabled = false
 		instancesBuffer[instance] = nil
@@ -117,7 +119,9 @@ end
 
 --ensures that all instances will be disabled if gizmo stops
 local function safeCheckBuffer()
-	if(frameIndex == 0) then return end
+	if frameIndex == 0 then
+		return
+	end
 	processBuffer()
 end
 
@@ -130,7 +134,7 @@ local function show(instance)
 	end
 end
 
---billboard gui requires spetial handling
+--billboard gui requires special handling
 local function hide(instance)
 	if instance:IsA("PVAdornment") or instance:IsA("GuiObject") then
 		instance.Visible = false
@@ -175,8 +179,8 @@ end
 for _, child in container:GetChildren() do
 	release(child)
 end
-processBuffer();
-safeCheckBuffer();
+processBuffer()
+safeCheckBuffer()
 
 -------------------------------------------------------------------------------
 -- Style Instances
