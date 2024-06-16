@@ -370,7 +370,7 @@ local function renderText(style, position: Vector3, text: string, ...)
 	local safeText = tostring(text):format(...)
 	local billboard = get("BillboardGui")
 	local label = get("TextLabel")
-	local textScale = style.scale * 0.25
+	local textScale = style.scale * 8
 	billboard.AlwaysOnTop = style.alwaysOnTop
 	billboard.StudsOffsetWorldSpace = position
 	billboard.Size = UDim2.fromScale(safeText:len() * 0.5 * textScale, textScale)
