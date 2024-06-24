@@ -1,4 +1,5 @@
 --!nonstrict
+--!native
 -- Name:		gizmo.lua
 -- Version:		2.0 (02/07/23)
 -- Author:		Brad Sharp, Ethan Curtis, Christopher Buss
@@ -100,17 +101,45 @@ local globalStyle: Style = {
 -- Update Instance Visibility
 -------------------------------------------------------------------------------
 
+local instancesBuffer = {}
+local frameIndex = 0
+--saves instances to disable them on the next frame
+local function processBuffer()
+	--checks every 2nd frame
+	frameIndex = (frameIndex + 1) % 2
+	if frameIndex == 1 then
+		return
+	end
+
+	for instance in instancesBuffer do
+		instance.Enabled = false
+		instancesBuffer[instance] = nil
+	end
+end
+
+--ensures that all instances will be disabled if gizmo stops
+local function safeCheckBuffer()
+	if frameIndex == 0 then
+		return
+	end
+	processBuffer()
+end
+
 local function show(instance)
 	if instance:IsA("PVAdornment") or instance:IsA("GuiObject") then
 		instance.Visible = true
 	else
+		instancesBuffer[instance] = nil
 		instance.Enabled = true
 	end
 end
 
+--billboard gui requires special handling
 local function hide(instance)
 	if instance:IsA("PVAdornment") or instance:IsA("GuiObject") then
 		instance.Visible = false
+	elseif instance:IsA("BillboardGui") then
+		instancesBuffer[instance] = true
 	else
 		instance.Enabled = false
 	end
@@ -150,6 +179,8 @@ end
 for _, child in container:GetChildren() do
 	release(child)
 end
+processBuffer()
+safeCheckBuffer()
 
 -------------------------------------------------------------------------------
 -- Style Instances
@@ -343,7 +374,7 @@ local function renderText(style, position: Vector3, text: string, ...)
 	local safeText = tostring(text):format(...)
 	local billboard = get("BillboardGui")
 	local label = get("TextLabel")
-	local textScale = style.scale * 0.25
+	local textScale = style.scale * 8
 	billboard.AlwaysOnTop = style.alwaysOnTop
 	billboard.StudsOffsetWorldSpace = position
 	billboard.Size = UDim2.fromScale(safeText:len() * 0.5 * textScale, textScale)
@@ -456,6 +487,7 @@ local function update()
 	for _, instance in ipairs(queue) do
 		release(instance)
 	end
+	processBuffer()
 end
 
 -------------------------------------------------------------------------------
@@ -474,6 +506,7 @@ local function disable()
 	if onRender then
 		onRender:Disconnect()
 		onRender = nil
+		safeCheckBuffer()
 	end
 end
 
