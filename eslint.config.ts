@@ -1,57 +1,15 @@
-import style from "@isentinel/eslint-config";
-
-import prettierrc from "./.prettierrc.config.ts";
+import style, { GLOB_JS } from "@isentinel/eslint-config";
 
 export default style(
 	{
-		formatters: {
-			markdown: true,
-			prettierOptions: prettierrc,
-			toml: true,
-		},
-		gitignore: true,
-		jsonc: true,
-		markdown: true,
-		rules: {
-			"perfectionist/sort-objects": [
-				"warn",
-				{
-					"custom-groups": {
-						id: "id",
-						name: "name",
-						ga: "progressionStatus",
-						"react-props": ["children", "ref"],
-						reflex: ["loadPlayerData", "closePlayerData"],
-					},
-					groups: ["id", "name", "reflex", "ga", "unknown", "react-props"],
-					order: "asc",
-					"partition-by-comment": "Part:**",
-					type: "natural",
-				},
-			],
-			"ts/no-magic-numbers": [
-				"error",
-				{
-					ignore: [0, 1],
-					ignoreEnums: true,
-					ignoreReadonlyClassProperties: true,
-					ignoreTypeIndexes: true,
-				},
-			],
-		},
-		toml: true,
+		spellCheck: false,
 		typescript: {
 			parserOptions: {
-				ecmaVersion: 2018,
-				jsx: true,
 				project: "tsconfig.build.json",
-				sourceType: "module",
-				useJSXTextNode: true,
 			},
-			tsconfigPath: "tsconfig.build.json",
 		},
 	},
 	{
-		ignores: ["*.js"],
+		ignores: [GLOB_JS],
 	},
 );
